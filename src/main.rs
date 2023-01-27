@@ -8,21 +8,46 @@ fn main() {
     //let buffer = format!("One Page                                Calendar");
     //print_color_bold(&buffer, "WHITE");
     println!();
-    let buffer = format!("-------------------------------------------------");
+    let buffer = format!("-------------------------------------------");
     print_color_bold(&buffer, "WHITE");
     println!();
-    let buffer = format!("                      {}" , year);
+    let buffer = title_str(&format!("{}" , year));
+    let buffer = center_str(&buffer, 42);
+
     print_color_bold(&buffer, "WHITE");
     println!();
-    let buffer = format!("-------------------------------------------------");
+    let buffer = format!("-------------------------------------------");
     print_color_bold(&buffer, "WHITE");
     print_month_headers(year);
     print_table();
 
-    let buffer = format!("-------------------------------------------------");
+    let buffer = format!("-------------------------------------------");
     print_color_bold(&buffer, "WHITE");
     println!();
     println!();
+}
+
+fn center_str(title: &str, width: usize) -> String {
+    let pad = (width - title.len())/2;
+
+    let mut buffer = String::new();
+    for _i in 0..pad {
+        buffer.push_str(" ");
+    }
+    buffer.push_str(title);
+
+    buffer
+}
+
+fn title_str(title: &str) -> String {
+    let mut buffer = String::new();
+    for c in title.chars() {
+        buffer.push_str(&format!("{}", c));
+        buffer.push_str(" ");
+    }
+    buffer.pop();
+
+    buffer
 }
 
 fn print_month_headers(year: i32) {
@@ -50,7 +75,7 @@ fn print_month_headers(year: i32) {
         }
     }
     for i in 0..4 {
-        print!("                     ");
+        print!("               ");
         if sun.len() > i {
             print_month_name(sun[i]);
         }
@@ -139,11 +164,16 @@ fn print_table() {
 
             if dayval <= 31 {
                 let daystring = format!("{}", dayval);
-                if dayval < 10 {
-                    print!("   ");
+                if dayval < 8 {
+                    print!(" ");
                 }
                 else {
-                    print!("  ");
+                    if dayval < 10 {
+                        print!("  ");
+                    }
+                    else {
+                        print!(" ");
+                    }
                 }
                 if dayval == day {
                     print_color_bold_reverse(&daystring, datecolor);
@@ -154,12 +184,14 @@ fn print_table() {
 
             }
             else {
-                print!("    ")
+                print!("   ")
             };
         }
         // print days
         for d in 0..7 {
-            print!("{:>4}", days[row as usize][d]);
+            //print!("{:>4}", days[row as usize][d]);
+            let buffer = format!("{:>4}", days[row as usize][d]);
+            print_color(&buffer, "GREY");
         }
         println!();
     }
