@@ -3,67 +3,61 @@
 mod ct;
 use ct::{print_color, print_color_bold, print_color_bold_reverse};
 
+struct Date {
+    year: usize,
+    month: usize,
+    day: usize,
+}
+
 fn main() {
-    let year = 2023;
-    //let buffer = format!("One Page                                Calendar");
-    //print_color_bold(&buffer, "WHITE");
+    let ts = timestamp();
+    let tsv: Vec<&str> = ts.split(['-', ' ']).collect();
+
+    let today = Date {
+        year:  tsv[0].parse::<usize>().unwrap(),
+        month: tsv[1].parse::<usize>().unwrap(),
+        day: tsv[2].parse::<usize>().unwrap(),
+    };
+
+    let calendar_year = today.year;
+
     println!();
     let buffer = format!("-------------------------------------------");
-    print_color_bold(&buffer, "WHITE");
+    print_color(&buffer, "WHITE");
     println!();
-    let buffer = title_str(&format!("{}" , year));
+
+    let buffer = title_str(&format!("{}" , calendar_year));
     let buffer = center_str(&buffer, 42);
-
-    print_color_bold(&buffer, "WHITE");
+    print_color_bold(&buffer, "DARKCYAN");
     println!();
-    let buffer = format!("-------------------------------------------");
-    print_color_bold(&buffer, "WHITE");
-    print_month_headers(year);
-    print_table();
 
     let buffer = format!("-------------------------------------------");
-    print_color_bold(&buffer, "WHITE");
+    print_color(&buffer, "WHITE");
+
+    print_month_headers(calendar_year);
+    print_table(today, calendar_year);
+
+    let buffer = format!("-------------------------------------------");
+    print_color(&buffer, "WHITE");
     println!();
     println!();
 }
 
-fn center_str(title: &str, width: usize) -> String {
-    let pad = (width - title.len())/2;
 
-    let mut buffer = String::new();
-    for _i in 0..pad {
-        buffer.push_str(" ");
-    }
-    buffer.push_str(title);
-
-    buffer
-}
-
-fn title_str(title: &str) -> String {
-    let mut buffer = String::new();
-    for c in title.chars() {
-        buffer.push_str(&format!("{}", c));
-        buffer.push_str(" ");
-    }
-    buffer.pop();
-
-    buffer
-}
-
-fn print_month_headers(year: i32) {
+fn print_month_headers(calendar_year: usize) {
     // populate columns
-    let mut sun: Vec<i32> = Vec::new();
-    let mut mon: Vec<i32> = Vec::new();
-    let mut tue: Vec<i32>= Vec::new();
-    let mut wed: Vec<i32> = Vec::new();
-    let mut thu: Vec<i32> = Vec::new();
-    let mut fri: Vec<i32> = Vec::new();
-    let mut sat: Vec<i32> = Vec::new();
+    let mut sun: Vec<usize> = Vec::new();
+    let mut mon: Vec<usize> = Vec::new();
+    let mut tue: Vec<usize>= Vec::new();
+    let mut wed: Vec<usize> = Vec::new();
+    let mut thu: Vec<usize> = Vec::new();
+    let mut fri: Vec<usize> = Vec::new();
+    let mut sat: Vec<usize> = Vec::new();
 
     println!();
 
     for i in 1..=12 {
-        match month_column(year, i) {
+        match month_column(calendar_year, i) {
             0 => sun.push(i), 
             1 => mon.push(i),
             2 => tue.push(i),
@@ -122,14 +116,7 @@ fn print_month_headers(year: i32) {
     }
 }
 
-fn print_table() {
-    // get today info
-    let ts = timestamp();
-    let tsv: Vec<&str> = ts.split(['-', ' ']).collect();
-    let year = tsv[0].parse::<i32>().unwrap();
-    let _month = tsv[1].parse::<i32>().unwrap();
-    let day = tsv[2].parse::<i32>().unwrap();
-
+fn print_table(today: Date, calendar_year: usize) {
     let mut days: Vec<Vec<&str>> = Vec::new();
     days.push("Sun Mon Tue Wed Thu Fri Sat".split(' ').collect());
     days.push("Mon Tue Wed Thu Fri Sat Sun".split(' ').collect());
@@ -139,25 +126,27 @@ fn print_table() {
     days.push("Fri Sat Sun Mon Tue Wed Thu".split(' ').collect());
     days.push("Sat Sun Mon Tue Wed Thu Fri".split(' ').collect());
 
+    let mut highlight_row = 100;
     for row in 0..7 {
+
         // print dates
         for col in 0..5 {
             let datecolor: &str;
             let dayval = row + 1 + col*7;
 
-            if is_leap_year(year) {
+            if is_leap_year(calendar_year) {
                 match dayval {
-                    29 => datecolor = "MAGENTA",
-                    30 => datecolor = "GREEN",
-                    31 => datecolor = "BLUE",
+                    29 => datecolor = "DARKMAGENTA",
+                    30 => datecolor = "DARKGREEN",
+                    31 => datecolor = "DARKBLUE",
                     _ => datecolor = "WHITE"
                 }
             }
             else {
                 match dayval {
-                    28 => datecolor = "MAGENTA",
-                    30 => datecolor = "GREEN",
-                    31 => datecolor = "BLUE",
+                    28 => datecolor = "DARKMAGENTA",
+                    30 => datecolor = "DARKGREEN",
+                    31 => datecolor = "DARKBLUE",
                     _ => datecolor = "WHITE"
                 }
             }
@@ -175,48 +164,78 @@ fn print_table() {
                         print!(" ");
                     }
                 }
-                if dayval == day {
-                    print_color_bold_reverse(&daystring, datecolor);
+                if dayval == today.day {
+                    if today.year == calendar_year {
+                        print_color_bold_reverse(&daystring, datecolor);
+                    }
+                    else {
+                        print_color(&daystring, datecolor);
+                    }
+                    highlight_row = row;
                 }
                 else {
                     print_color(&daystring, datecolor);
                 }
-
             }
             else {
                 print!("   ")
             };
         }
+
         // print days
-        for d in 0..7 {
+        for col in 0..7 {
             //print!("{:>4}", days[row as usize][d]);
-            let buffer = format!("{:>4}", days[row as usize][d]);
-            print_color(&buffer, "GREY");
+            //if col head contains month then hightlight day
+            let buffer = format!("{}", days[row as usize][col]);
+            let daycolor: &str;
+            if buffer == "Sun" {
+                daycolor = "DARKCYAN"
+            }
+            else {
+                daycolor = "WHITE"
+            }
+
+            if row == highlight_row {
+                if today.year == calendar_year {
+                    if col == month_column(today.year, today.month) { 
+                        print!(" ");
+                        print_color_bold_reverse(&buffer, daycolor);
+                    }
+                    else {
+                        print!(" ");
+                        print_color(&buffer, daycolor);
+                    }
+                }
+            }
+            else {
+                print!(" ");
+                print_color(&buffer, daycolor);
+            }
         }
         println!();
     }
 }
 
-fn print_month_name(month: i32) {
+fn print_month_name(month: usize) {
     let ts = timestamp();
     let tsv: Vec<&str> = ts.split(['-', ' ']).collect();
     //let year = tsv[0].parse::<i32>().unwrap();
-    let current_month = tsv[1].parse::<i32>().unwrap();
+    let current_month = tsv[1].parse::<usize>().unwrap();
     //let day = tsv[2].parse::<i32>().unwrap();
     //let mut monthcolor = "WHITE";
     let monthcolor = match month_name(month).as_str() {
-        "JAN" => "BLUE",
-        "FEB" => "MAGENTA",
-        "MAR" => "BLUE",
-        "APR" => "GREEN",
-        "MAY" => "BLUE",
-        "JUN" => "GREEN",
-        "JUL" => "BLUE",
-        "AUG" => "BLUE",
-        "SEP" => "GREEN",
-        "OCT" => "BLUE",
-        "NOV" => "GREEN",
-        "DEC" => "BLUE",
+        "JAN" => "DARKBLUE",
+        "FEB" => "DARKMAGENTA",
+        "MAR" => "DARKBLUE",
+        "APR" => "DARKGREEN",
+        "MAY" => "DARKBLUE",
+        "JUN" => "DARKGREEN",
+        "JUL" => "DARKBLUE",
+        "AUG" => "DARKBLUE",
+        "SEP" => "DARKGREEN",
+        "OCT" => "DARKBLUE",
+        "NOV" => "DARKGREEN",
+        "DEC" => "DARKBLUE",
         _ => "WHITE"
     };
 
@@ -233,7 +252,7 @@ fn print_month_name(month: i32) {
     }
 }
 
-fn month_name(month: i32) -> String {
+fn month_name(month: usize) -> String {
     match month {
        1 => String::from("JAN"),
        2 => String::from("FEB"),
@@ -251,33 +270,56 @@ fn month_name(month: i32) -> String {
     }
 }
 
-fn month_column(year: i32, month: i32) -> i32 {
+fn month_column(year: usize, month: usize) -> usize {
     day_of_week(year, month, 1)
 }
 
-fn day_of_week(year: i32, month: i32, day: i32) -> i32 {
+fn day_of_week(year: usize, month: usize, day: usize) -> usize {
 
     let mut y = year;
     let m = month;
     let d = day;
-    let t: Vec<i32> = vec![0, 3, 2, 5, 0, 3, 5, 1, 4, 6, 2, 4];
+    let t: Vec<usize> = vec![0, 3, 2, 5, 0, 3, 5, 1, 4, 6, 2, 4];
     if m < 3 {
         y -= 1;
     }
-    let dow = (y + y/4 - y/100 + y/400 + t[(m-1) as usize] + d)%7;
+    let dow = (y + y/4 - y/100 + y/400 + t[m-1] + d)%7;
 
     dow
 }
 
-fn is_leap_year(year: i32) -> bool {
+fn is_leap_year(year: usize) -> bool {
     if (year%4 == 0 && year%100 != 0) || (year%400 == 0) {
         return true;
     }
-    
+
     false
 }
 
 fn timestamp() -> String {
     let now = chrono::Local::now();
     return now.to_string();
+}
+
+fn center_str(title: &str, width: usize) -> String {
+    let pad = (width - title.len())/2;
+
+    let mut buffer = String::new();
+    for _i in 0..pad {
+        buffer.push_str(" ");
+    }
+    buffer.push_str(title);
+
+    buffer
+}
+
+fn title_str(title: &str) -> String {
+    let mut buffer = String::new();
+    for c in title.chars() {
+        buffer.push_str(&format!("{}", c));
+        buffer.push_str(" ");
+    }
+    buffer.pop();
+
+    buffer
 }
