@@ -1,2 +1,4 @@
 cal-rs: One Page Calendar
-![ScreenShot](img/Screenshot.png width="100")
+
+
+![ScreenShot](img/Screenshot.png "Screenshot" {width="100"})
