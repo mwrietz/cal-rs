@@ -21,7 +21,7 @@ fn main() {
     let tsv: Vec<&str> = ts.split(['-', ' ']).collect();
 
     let mut today = Date {
-        year:  tsv[0].parse::<usize>().unwrap(),
+        year: tsv[0].parse::<usize>().unwrap(),
         month: tsv[1].parse::<usize>().unwrap(),
         day: tsv[2].parse::<usize>().unwrap(),
         calendar_year: 0
@@ -120,50 +120,21 @@ fn print_table(today: &Date) {
 
         // print dates
         for col in 0..5 {
-            let datecolor: &str;
             let dayval = row + 1 + col*7;
-
-            if is_leap_year(today.calendar_year) {
-                match dayval {
-                    29 => datecolor = "DARKMAGENTA",
-                    30 => datecolor = "DARKGREEN",
-                    31 => datecolor = "DARKBLUE",
-                    _ => datecolor = "WHITE"
-                }
-            }
-            else {
-                match dayval {
-                    28 => datecolor = "DARKMAGENTA",
-                    30 => datecolor = "DARKGREEN",
-                    31 => datecolor = "DARKBLUE",
-                    _ => datecolor = "WHITE"
-                }
-            }
 
             if dayval <= 31 {
                 let daystring = format!("{}", dayval);
-                if dayval < 8 {
-                    print!(" ");
+
+                match dayval {
+                    8 | 9 => print!("  "),
+                    _ => print!(" ")
                 }
-                else {
-                    if dayval < 10 {
-                        print!("  ");
-                    }
-                    else {
-                        print!(" ");
-                    }
-                }
-                if dayval == today.day {
-                    if today.year == today.calendar_year {
-                        print_color_bold_reverse(&daystring, datecolor);
-                    }
-                    else {
-                        print_color(&daystring, datecolor);
-                    }
+                if dayval == today.day && today.year == today.calendar_year {
+                    print_color_bold_reverse(&daystring, &date_color(dayval, today.calendar_year));
                     highlight_row = row;
                 }
                 else {
-                    print_color(&daystring, datecolor);
+                    print_color(&daystring, &date_color(dayval, today.calendar_year));
                 }
             }
             else {
@@ -182,22 +153,9 @@ fn print_table(today: &Date) {
                 daycolor = "WHITE"
             }
 
-            if row == highlight_row {
-                if today.year == today.calendar_year {
-                    if col == month_column(today.year, today.month) { 
-                        print!(" ");
-                        print_color_bold_reverse(&buffer, daycolor);
-                    }
-                    else {
-                        print!(" ");
-                        print_color(&buffer, daycolor);
-                    }
-                }
-                else {
-                    print!(" ");
-                    print_color(&buffer, daycolor);
-                }
-//                }
+            if today.year == today.calendar_year && row == highlight_row && col == month_column(today.year, today.month) {
+                print!(" ");
+                print_color_bold_reverse(&buffer, daycolor);
             }
             else {
                 print!(" ");
@@ -209,37 +167,20 @@ fn print_table(today: &Date) {
 }
 
 fn print_month_name(today: &Date, month: usize) {
-    let monthcolor = match month_name(month).as_str() {
-        "JAN" => "DARKBLUE",
-        "FEB" => "DARKMAGENTA",
-        "MAR" => "DARKBLUE",
-        "APR" => "DARKGREEN",
-        "MAY" => "DARKBLUE",
-        "JUN" => "DARKGREEN",
-        "JUL" => "DARKBLUE",
-        "AUG" => "DARKBLUE",
-        "SEP" => "DARKGREEN",
-        "OCT" => "DARKBLUE",
-        "NOV" => "DARKGREEN",
-        "DEC" => "DARKBLUE",
-        _ => "WHITE"
-    };
-
     let buffer = format!("{}", month_name(month));
 
-    // if month is current month
     if month == today.month && today.calendar_year == today.year {
-        print_color_bold_reverse(&buffer, monthcolor);
+        print_color_bold_reverse(&buffer, &month_color(month_name(month)));
         print!(" ");
     }
     else {
-        print_color(&buffer, monthcolor);
+        print_color(&buffer, &month_color(month_name(month)));
         print!(" ");
     }
 }
 
-fn month_name(month: usize) -> String {
-    match month {
+fn month_name(month_num: usize) -> String {
+    match month_num {
        1 => String::from("JAN"),
        2 => String::from("FEB"),
        3 => String::from("MAR"),
@@ -256,16 +197,53 @@ fn month_name(month: usize) -> String {
     }
 }
 
+fn month_color(month_abbr: String) -> String {
+    match month_abbr.as_str() {
+        "JAN" => "DARKBLUE".to_string(),
+        "FEB" => "DARKMAGENTA".to_string(),
+        "MAR" => "DARKBLUE".to_string(),
+        "APR" => "DARKGREEN".to_string(),
+        "MAY" => "DARKBLUE".to_string(),
+        "JUN" => "DARKGREEN".to_string(),
+        "JUL" => "DARKBLUE".to_string(),
+        "AUG" => "DARKBLUE".to_string(),
+        "SEP" => "DARKGREEN".to_string(),
+        "OCT" => "DARKBLUE".to_string(),
+        "NOV" => "DARKGREEN".to_string(),
+        "DEC" => "DARKBLUE".to_string(),
+        _ => "WHITE".to_string()
+    }
+}
+
+fn date_color(dayval: usize, calendar_year: usize) -> String {
+    if is_leap_year(calendar_year) {
+        match dayval {
+            29 => "DARKMAGENTA".to_string(),
+            30 => "DARKGREEN".to_string(),
+            31 => "DARKBLUE".to_string(),
+            _ => "WHITE".to_string()
+        }
+    }
+    else {
+        match dayval {
+            28 => "DARKMAGENTA".to_string(),
+            30 => "DARKGREEN".to_string(),
+            31 => "DARKBLUE".to_string(),
+            _ => "WHITE".to_string()
+        }
+    }
+}
+
 fn month_column(year: usize, month: usize) -> usize {
     day_of_week(year, month, 1)
 }
 
 fn day_of_week(year: usize, month: usize, day: usize) -> usize {
-
     let mut y = year;
     let m = month;
     let d = day;
     let t: Vec<usize> = vec![0, 3, 2, 5, 0, 3, 5, 1, 4, 6, 2, 4];
+
     if m < 3 {
         y -= 1;
     }
@@ -319,7 +297,7 @@ fn hline() {
 fn usage() -> usize {
     println!();
     //println!("{} v{}", get_prog_name(), env!("CARGO_PKG_VERSION"));
-    print_color_bold(&get_prog_name(), "YELLOW");
+    print_color_bold(&get_prog_name(), "DARKYELLOW");
     println!(" v{}", env!("CARGO_PKG_VERSION"));
     println!();
     println!("Usage: {} [YEAR]", get_prog_name());
