@@ -5,6 +5,7 @@ mod gh_repo_status;
 
 use ct::{print_color, print_color_bold, print_color_bold_reverse};
 use std::env;
+use std::process;
 
 struct Date {
     year: usize,
@@ -26,109 +27,81 @@ fn main() {
         calendar_year: 0
     };
 
-    //let calendar_year: usize;
     if args.len() < 2 {
         today.calendar_year = today.year;
     }
     else {
-        today.calendar_year = args[1].parse::<usize>().unwrap();
+        today.calendar_year = match args[1].parse::<usize>() {
+            Ok(y) => y,
+            Err(_) => {
+                usage()
+            }
+        };
     }
 
     println!();
-    let buffer = format!("-------------------------------------------");
-    print_color(&buffer, "WHITE");
-    println!();
+    hline();
 
     let buffer = title_str(&format!("{}" , today.calendar_year));
     let buffer = center_str(&buffer, 42);
     print_color_bold(&buffer, "DARKYELLOW");
     println!();
 
-    let buffer = format!("-------------------------------------------");
-    print_color(&buffer, "WHITE");
+    hline();
 
     print_month_headers(&today);
     print_table(&today);
 
-    let buffer = format!("-------------------------------------------");
-    print_color(&buffer, "WHITE");
-    println!();
+    hline();
     println!();
 
-    gh_repo_status::check_version()
-        .expect("check_version error");
+    quit();
 }
 
 
 fn print_month_headers(today: &Date) {
     // populate columns
-    let mut sun: Vec<usize> = Vec::new();
-    let mut mon: Vec<usize> = Vec::new();
-    let mut tue: Vec<usize>= Vec::new();
-    let mut wed: Vec<usize> = Vec::new();
-    let mut thu: Vec<usize> = Vec::new();
-    let mut fri: Vec<usize> = Vec::new();
-    let mut sat: Vec<usize> = Vec::new();
-
-    println!();
+    let mut col0: Vec<usize> = Vec::new();
+    let mut col1: Vec<usize> = Vec::new();
+    let mut col2: Vec<usize> = Vec::new();
+    let mut col3: Vec<usize> = Vec::new();
+    let mut col4: Vec<usize> = Vec::new();
+    let mut col5: Vec<usize> = Vec::new();
+    let mut col6: Vec<usize> = Vec::new();
 
     for i in 1..=12 {
         match month_column(today.calendar_year, i) {
-            0 => sun.push(i), 
-            1 => mon.push(i),
-            2 => tue.push(i),
-            3 => wed.push(i),
-            4 => thu.push(i),
-            5 => fri.push(i),
-            6 => sat.push(i),
+            0 => col0.push(i), 
+            1 => col1.push(i),
+            2 => col2.push(i),
+            3 => col3.push(i),
+            4 => col4.push(i),
+            5 => col5.push(i),
+            6 => col6.push(i),
             _ => println!("error")
         }
     }
-    for i in 0..4 {
+
+    let mut cols: Vec<Vec<usize>> = Vec::new();
+    cols.push(col0.clone());
+    cols.push(col1.clone());
+    cols.push(col2.clone());
+    cols.push(col3.clone());
+    cols.push(col4.clone());
+    cols.push(col5.clone());
+    cols.push(col6.clone());
+
+    for i in 0..3 {
         print!("               ");
-        if sun.len() > i {
-            print_month_name(&today, sun[i]);
+        for c in 0..7 {
+            if cols[c].len() > i {
+                print_month_name(&today, cols[c][i]);
+            }
+            else {
+                print!("    ");
+            }
         }
-        else {
-            print!("    ");
-        }
-        if mon.len() > i {
-            print_month_name(&today, mon[i]);
-        }
-        else {
-            print!("    ");
-        }
-        if tue.len() > i {
-            print_month_name(&today, tue[i]);
-        }
-        else {
-            print!("    ");
-        }
-        if wed.len() > i {
-            print_month_name(&today, wed[i]);
-        }
-        else {
-            print!("    ");
-        }
-        if thu.len() > i {
-            print_month_name(&today, thu[i]);
-        }
-        else {
-            print!("    ");
-        }
-        if fri.len() > i {
-            print_month_name(&today, fri[i]);
-        }
-        else {
-            print!("    ");
-        }
-        if sat.len() > i {
-            print_month_name(&today, sat[i]);
-            println!();
-        }
-        else {
-            println!("    ");
-        }
+        println!();
     }
 }
 
@@ -200,8 +173,6 @@ fn print_table(today: &Date) {
 
         // print days
         for col in 0..7 {
-            //print!("{:>4}", days[row as usize][d]);
-            //if col head contains month then hightlight day
             let buffer = format!("{}", days[row as usize][col]);
             let daycolor: &str;
             if buffer == "Sun" {
@@ -238,12 +209,6 @@ fn print_table(today: &Date) {
 }
 
 fn print_month_name(today: &Date, month: usize) {
-    //let ts = timestamp();
-    //let tsv: Vec<&str> = ts.split(['-', ' ']).collect();
-    //let current_year = tsv[0].parse::<i32>().unwrap();
-    //let current_month = tsv[1].parse::<usize>().unwrap();
-    //let day = tsv[2].parse::<i32>().unwrap();
-    //let mut monthcolor = "WHITE";
     let monthcolor = match month_name(month).as_str() {
         "JAN" => "DARKBLUE",
         "FEB" => "DARKMAGENTA",
@@ -343,4 +308,40 @@ fn title_str(title: &str) -> String {
     buffer.pop();
 
     buffer
+}
+
+fn hline() {
+    let buffer = format!("-------------------------------------------");
+    print_color(&buffer, "WHITE");
+    println!();
+}
+
+fn usage() -> usize {
+    println!();
+    //println!("{} v{}", get_prog_name(), env!("CARGO_PKG_VERSION"));
+    print_color_bold(&get_prog_name(), "YELLOW");
+    println!(" v{}", env!("CARGO_PKG_VERSION"));
+    println!();
+    println!("Usage: {} [YEAR]", get_prog_name());
+    println!();
+
+    quit();
+
+    0
+}
+
+fn get_prog_name() -> String {
+    let prog_name = env::current_exe()
+        .expect("Can't get the exec path")
+        .file_name()
+        .expect("Can't get the exec name")
+        .to_string_lossy()
+        .into_owned();
+    prog_name
+}
+
+fn quit() {
+    gh_repo_status::check_version()
+        .expect("check_version error");
+    process::exit(1);
 }
