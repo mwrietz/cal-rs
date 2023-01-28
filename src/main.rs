@@ -217,6 +217,10 @@ fn print_table(today: &Date) {
                         print!(" ");
                         print_color_bold_reverse(&buffer, daycolor);
                     }
+                    else {
+                        print!(" ");
+                        print_color(&buffer, daycolor);
+                    }
                 }
                 else {
                     print!(" ");
