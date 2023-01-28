@@ -43,7 +43,7 @@ fn main() {
     hline();
 
     let buffer = title_str(&format!("{}" , today.calendar_year));
-    let buffer = center_str(&buffer, 42);
+    let buffer = center_str(&buffer, 43);
     print_color_bold(&buffer, "DARKYELLOW");
     println!();
 
