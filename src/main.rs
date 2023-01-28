@@ -1,50 +1,66 @@
 // one page calendar
 
 mod ct;
+mod gh_repo_status;
+
 use ct::{print_color, print_color_bold, print_color_bold_reverse};
+use std::env;
 
 struct Date {
     year: usize,
     month: usize,
     day: usize,
+    calendar_year: usize
 }
 
 fn main() {
+    let args: Vec<String> = env::args().collect();
+
     let ts = timestamp();
     let tsv: Vec<&str> = ts.split(['-', ' ']).collect();
 
-    let today = Date {
+    let mut today = Date {
         year:  tsv[0].parse::<usize>().unwrap(),
         month: tsv[1].parse::<usize>().unwrap(),
         day: tsv[2].parse::<usize>().unwrap(),
+        calendar_year: 0
     };
 
-    let calendar_year = today.year;
+    //let calendar_year: usize;
+    if args.len() < 2 {
+        today.calendar_year = today.year;
+    }
+    else {
+        today.calendar_year = args[1].parse::<usize>().unwrap();
+    }
 
     println!();
     let buffer = format!("-------------------------------------------");
     print_color(&buffer, "WHITE");
     println!();
 
-    let buffer = title_str(&format!("{}" , calendar_year));
+    let buffer = title_str(&format!("{}" , today.calendar_year));
     let buffer = center_str(&buffer, 42);
-    print_color_bold(&buffer, "DARKCYAN");
+    print_color_bold(&buffer, "DARKYELLOW");
     println!();
 
     let buffer = format!("-------------------------------------------");
     print_color(&buffer, "WHITE");
 
-    print_month_headers(calendar_year);
-    print_table(today, calendar_year);
+    print_month_headers(&today);
+    print_table(&today);
 
     let buffer = format!("-------------------------------------------");
     print_color(&buffer, "WHITE");
     println!();
     println!();
+
+    gh_repo_status::check_version()
+        .expect("check_version error");
 }
 
 
-fn print_month_headers(calendar_year: usize) {
+fn print_month_headers(today: &Date) {
     // populate columns
     let mut sun: Vec<usize> = Vec::new();
     let mut mon: Vec<usize> = Vec::new();
@@ -57,7 +73,7 @@ fn print_month_headers(calendar_year: usize) {
     println!();
 
     for i in 1..=12 {
-        match month_column(calendar_year, i) {
+        match month_column(today.calendar_year, i) {
             0 => sun.push(i), 
             1 => mon.push(i),
             2 => tue.push(i),
@@ -71,43 +87,43 @@ fn print_month_headers(calendar_year: usize) {
     for i in 0..4 {
         print!("               ");
         if sun.len() > i {
-            print_month_name(sun[i]);
+            print_month_name(&today, sun[i]);
         }
         else {
             print!("    ");
         }
         if mon.len() > i {
-            print_month_name(mon[i]);
+            print_month_name(&today, mon[i]);
         }
         else {
             print!("    ");
         }
         if tue.len() > i {
-            print_month_name(tue[i]);
+            print_month_name(&today, tue[i]);
         }
         else {
             print!("    ");
         }
         if wed.len() > i {
-            print_month_name(wed[i]);
+            print_month_name(&today, wed[i]);
         }
         else {
             print!("    ");
         }
         if thu.len() > i {
-            print_month_name(thu[i]);
+            print_month_name(&today, thu[i]);
         }
         else {
             print!("    ");
         }
         if fri.len() > i {
-            print_month_name(fri[i]);
+            print_month_name(&today, fri[i]);
         }
         else {
             print!("    ");
         }
         if sat.len() > i {
-            print_month_name(sat[i]);
+            print_month_name(&today, sat[i]);
             println!();
         }
         else {
@@ -116,7 +132,7 @@ fn print_month_headers(calendar_year: usize) {
     }
 }
 
-fn print_table(today: Date, calendar_year: usize) {
+fn print_table(today: &Date) {
     let mut days: Vec<Vec<&str>> = Vec::new();
     days.push("Sun Mon Tue Wed Thu Fri Sat".split(' ').collect());
     days.push("Mon Tue Wed Thu Fri Sat Sun".split(' ').collect());
@@ -134,7 +150,7 @@ fn print_table(today: Date, calendar_year: usize) {
             let datecolor: &str;
             let dayval = row + 1 + col*7;
 
-            if is_leap_year(calendar_year) {
+            if is_leap_year(today.calendar_year) {
                 match dayval {
                     29 => datecolor = "DARKMAGENTA",
                     30 => datecolor = "DARKGREEN",
@@ -165,7 +181,7 @@ fn print_table(today: Date, calendar_year: usize) {
                     }
                 }
                 if dayval == today.day {
-                    if today.year == calendar_year {
+                    if today.year == today.calendar_year {
                         print_color_bold_reverse(&daystring, datecolor);
                     }
                     else {
@@ -189,23 +205,24 @@ fn print_table(today: Date, calendar_year: usize) {
             let buffer = format!("{}", days[row as usize][col]);
             let daycolor: &str;
             if buffer == "Sun" {
-                daycolor = "DARKCYAN"
+                daycolor = "DARKRED"
             }
             else {
                 daycolor = "WHITE"
             }
 
             if row == highlight_row {
-                if today.year == calendar_year {
+                if today.year == today.calendar_year {
                     if col == month_column(today.year, today.month) { 
                         print!(" ");
                         print_color_bold_reverse(&buffer, daycolor);
                     }
-                    else {
-                        print!(" ");
-                        print_color(&buffer, daycolor);
-                    }
                 }
+                else {
+                    print!(" ");
+                    print_color(&buffer, daycolor);
+                }
+//                }
             }
             else {
                 print!(" ");
@@ -216,11 +233,11 @@ fn print_table(today: Date, calendar_year: usize) {
     }
 }
 
-fn print_month_name(month: usize) {
-    let ts = timestamp();
-    let tsv: Vec<&str> = ts.split(['-', ' ']).collect();
-    //let year = tsv[0].parse::<i32>().unwrap();
-    let current_month = tsv[1].parse::<usize>().unwrap();
+fn print_month_name(today: &Date, month: usize) {
+    //let ts = timestamp();
+    //let tsv: Vec<&str> = ts.split(['-', ' ']).collect();
+    //let current_year = tsv[0].parse::<i32>().unwrap();
+    //let current_month = tsv[1].parse::<usize>().unwrap();
     //let day = tsv[2].parse::<i32>().unwrap();
     //let mut monthcolor = "WHITE";
     let monthcolor = match month_name(month).as_str() {
@@ -242,7 +259,7 @@ fn print_month_name(month: usize) {
     let buffer = format!("{}", month_name(month));
 
     // if month is current month
-    if month == current_month {
+    if month == today.month && today.calendar_year == today.year {
         print_color_bold_reverse(&buffer, monthcolor);
         print!(" ");
     }
