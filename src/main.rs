@@ -14,6 +14,13 @@ struct Date {
     calendar_year: usize,
 }
 
+enum Position {
+    Top,
+    Middle,
+    Bottom,
+    Side,
+}
+
 fn main() {
     let args: Vec<String> = env::args().collect();
 
@@ -37,19 +44,21 @@ fn main() {
     }
 
     println!();
-    hline();
+    line(Position::Top);
 
     let buffer = title_str(&format!("{}", today.calendar_year));
     let buffer = center_str(&buffer, 43);
+    line(Position::Side);
     print_color_bold(&buffer, "DARKYELLOW");
+    line(Position::Side);
     println!();
 
-    hline();
+    line(Position::Middle);
 
     print_month_headers(&today);
     print_table(&today);
 
-    hline();
+    line(Position::Bottom);
     println!();
 
     quit();
@@ -88,6 +97,7 @@ fn print_month_headers(today: &Date) {
     cols.push(col6.clone());
 
     for i in 0..3 {
+        line(Position::Side);
         print!("               ");
         for c in 0..7 {
             if cols[c].len() > i {
@@ -96,6 +106,7 @@ fn print_month_headers(today: &Date) {
                 print!("    ");
             }
         }
+        line(Position::Side);
         println!();
     }
 }
@@ -113,6 +124,7 @@ fn print_table(today: &Date) {
     let mut highlight_row = 100;
     for row in 0..7 {
         // print dates
+        line(Position::Side);
         for col in 0..5 {
             let dayval = row + 1 + col * 7;
 
@@ -155,6 +167,8 @@ fn print_table(today: &Date) {
                 print_color(&buffer, daycolor);
             }
         }
+        print!(" ");
+        line(Position::Side);
         println!();
     }
 }
@@ -264,6 +278,9 @@ fn center_str(title: &str, width: usize) -> String {
         buffer.push_str(" ");
     }
     buffer.push_str(title);
+    for _i in 0..pad {
+        buffer.push_str(" ");
+    }
 
     buffer
 }
@@ -279,10 +296,28 @@ fn title_str(title: &str) -> String {
     buffer
 }
 
-fn hline() {
-    let buffer = format!("-------------------------------------------");
-    print_color(&buffer, "WHITE");
-    println!();
+fn line(pos: Position) {
+    let buffer_top = format!("╭───────────────────────────────────────────╮");
+    let buffer_mid = format!("├───────────────────────────────────────────┤");
+    let buffer_bot = format!("╰───────────────────────────────────────────╯");
+    let buffer_side = format!("│");
+    match pos {
+        Position::Top => {
+            print_color(&buffer_top, "WHITE");
+            println!();
+        }
+        Position::Middle => {
+            print_color(&buffer_mid, "WHITE");
+            println!();
+        }
+        Position::Bottom => {
+            print_color(&buffer_bot, "WHITE");
+            println!();
+        }
+        Position::Side => {
+            print_color(&buffer_side, "WHITE");
+        }
+    }
 }
 
 fn usage() -> usize {
