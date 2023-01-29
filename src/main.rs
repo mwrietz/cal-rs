@@ -303,19 +303,19 @@ fn line(pos: Position) {
     let buffer_side = format!("│");
     match pos {
         Position::Top => {
-            print_color(&buffer_top, "WHITE");
+            print_color(&buffer_top, "GREY");
             println!();
         }
         Position::Middle => {
-            print_color(&buffer_mid, "WHITE");
+            print_color(&buffer_mid, "GREY");
             println!();
         }
         Position::Bottom => {
-            print_color(&buffer_bot, "WHITE");
+            print_color(&buffer_bot, "GREY");
             println!();
         }
         Position::Side => {
-            print_color(&buffer_side, "WHITE");
+            print_color(&buffer_side, "GREY");
         }
     }
 }
