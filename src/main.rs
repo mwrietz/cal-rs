@@ -19,6 +19,9 @@ enum Position {
     Middle,
     Bottom,
     Side,
+    //Tee,
+    //TeeInv,
+    //Cross,
 }
 
 fn main() {
@@ -44,20 +47,11 @@ fn main() {
     }
 
     println!();
+
     line(Position::Top);
-
-    let buffer = title_str(&format!("{}", today.calendar_year));
-    let buffer = center_str(&buffer, 43);
-    line(Position::Side);
-    print_color_bold(&buffer, "DARKYELLOW");
-    line(Position::Side);
-    println!();
-
-    line(Position::Middle);
-
     print_month_headers(&today);
+    line(Position::Middle);
     print_table(&today);
-
     line(Position::Bottom);
     println!();
 
@@ -97,8 +91,20 @@ fn print_month_headers(today: &Date) {
     cols.push(col6.clone());
 
     for i in 0..3 {
+        let mut buffer: String;
+        if i == 1 {
+            buffer = title_str(&format!("{}", today.calendar_year));
+            buffer = center_str(&buffer, 15);
+        }
+        else {
+            buffer = "               ".to_string();
+        }
+
         line(Position::Side);
-        print!("               ");
+        print_color_bold(&buffer, "DARKYELLOW");
+        line(Position::Side);
+
+        print!(" ");
         for c in 0..7 {
             if cols[c].len() > i {
                 print_month_name(&today, cols[c][i]);
@@ -145,6 +151,8 @@ fn print_table(today: &Date) {
                 print!("   ")
             };
         }
+        print!(" ");
+        line(Position::Side);
 
         // print days
         for col in 0..7 {
@@ -297,26 +305,39 @@ fn title_str(title: &str) -> String {
 }
 
 fn line(pos: Position) {
-    let buffer_top = format!("╭───────────────────────────────────────────╮");
-    let buffer_mid = format!("├───────────────────────────────────────────┤");
-    let buffer_bot = format!("╰───────────────────────────────────────────╯");
+    let box_color = "WHITE";
+    let buffer_top = format!("╭───────────────┬─────────────────────────────╮");
+    let buffer_mid = format!("├───────────────┼─────────────────────────────┤");
+    let buffer_bot = format!("╰───────────────┴─────────────────────────────╯");
     let buffer_side = format!("│");
+    //let buffer_tee = format!("┬");
+    //let buffer_teeinv = format!("┴");
+    //let buffer_cross = format!("┼");
     match pos {
         Position::Top => {
-            print_color(&buffer_top, "GREY");
+            print_color(&buffer_top, box_color);
             println!();
         }
         Position::Middle => {
-            print_color(&buffer_mid, "GREY");
+            print_color(&buffer_mid, box_color);
             println!();
         }
         Position::Bottom => {
-            print_color(&buffer_bot, "GREY");
+            print_color(&buffer_bot, box_color);
             println!();
         }
         Position::Side => {
-            print_color(&buffer_side, "GREY");
+            print_color(&buffer_side, box_color);
         }
+        //Position::Tee => {
+        //    print_color(&buffer_tee, box_color);
+        //}
+        //Position::TeeInv => {
+        //    print_color(&buffer_teeinv, box_color);
+        //}
+        //Position::Cross => {
+        //    print_color(&buffer_cross, box_color);
+        //}
     }
 }
 
