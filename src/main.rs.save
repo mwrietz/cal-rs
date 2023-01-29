@@ -100,8 +100,7 @@ fn print_month_headers(today: &Date) {
             buffer = "               ".to_string();
         }
 
-        //line(Position::Side);
-        print!(" ");
+        line(Position::Side);
         print_color_bold(&buffer, "DARKYELLOW");
         line(Position::Side);
 
@@ -113,8 +112,7 @@ fn print_month_headers(today: &Date) {
                 print!("    ");
             }
         }
-        //line(Position::Side);
-        print!(" ");
+        line(Position::Side);
         println!();
     }
 }
@@ -132,8 +130,7 @@ fn print_table(today: &Date) {
     let mut highlight_row = 100;
     for row in 0..7 {
         // print dates
-        //line(Position::Side);
-        print!(" ");
+        line(Position::Side);
         for col in 0..5 {
             let dayval = row + 1 + col * 7;
 
@@ -179,8 +176,7 @@ fn print_table(today: &Date) {
             }
         }
         print!(" ");
-        //line(Position::Side);
-        print!(" ");
+        line(Position::Side);
         println!();
     }
 }
@@ -310,9 +306,9 @@ fn title_str(title: &str) -> String {
 
 fn line(pos: Position) {
     let box_color = "WHITE";
-    let buffer_top = format!("                │                              ");
-    let buffer_mid = format!("────────────────┼──────────────────────────────");
-    let buffer_bot = format!("                │                              ");
+    let buffer_top = format!("╭───────────────┬─────────────────────────────╮");
+    let buffer_mid = format!("├───────────────┼─────────────────────────────┤");
+    let buffer_bot = format!("╰───────────────┴─────────────────────────────╯");
     let buffer_side = format!("│");
     //let buffer_tee = format!("┬");
     //let buffer_teeinv = format!("┴");
