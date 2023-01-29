@@ -58,7 +58,6 @@ fn main() {
     quit();
 }
 
-
 fn print_month_headers(today: &Date) {
     // populate columns
     let mut col0: Vec<usize> = Vec::new();
