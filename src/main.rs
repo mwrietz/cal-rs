@@ -159,7 +159,7 @@ fn print_table(today: &Date) {
             let buffer = format!("{}", days[row as usize][col]);
             let daycolor: &str;
             if buffer == "Sun" {
-                daycolor = "DARKRED"
+                daycolor = "DARKYELLOW"
             } else {
                 daycolor = "WHITE"
             }
@@ -214,7 +214,7 @@ fn month_name(month_num: usize) -> String {
 fn month_color(month_abbr: String) -> String {
     match month_abbr.as_str() {
         "JAN" => "DARKBLUE".to_string(),
-        "FEB" => "DARKMAGENTA".to_string(),
+        "FEB" => "DARKRED".to_string(),
         "MAR" => "DARKBLUE".to_string(),
         "APR" => "DARKGREEN".to_string(),
         "MAY" => "DARKBLUE".to_string(),
@@ -232,14 +232,14 @@ fn month_color(month_abbr: String) -> String {
 fn date_color(dayval: usize, calendar_year: usize) -> String {
     if is_leap_year(calendar_year) {
         match dayval {
-            29 => "DARKMAGENTA".to_string(),
+            29 => "DARKRED".to_string(),
             30 => "DARKGREEN".to_string(),
             31 => "DARKBLUE".to_string(),
             _ => "WHITE".to_string(),
         }
     } else {
         match dayval {
-            28 => "DARKMAGENTA".to_string(),
+            28 => "DARKRED".to_string(),
             30 => "DARKGREEN".to_string(),
             31 => "DARKBLUE".to_string(),
             _ => "WHITE".to_string(),
