@@ -1,4 +1,3 @@
-
 //!  verify if CARGO_PKG_VERSION matches Cargo.toml version currently on GitHub
 
 ///
@@ -16,13 +15,14 @@
 ///      .expect("check_version error");
 ///  ```
 ///
-
 use std::env;
 use std::io::Read;
 
 pub fn check_version() -> Result<(), Box<dyn std::error::Error>> {
-
-    let url = format!("https://raw.githubusercontent.com/mwrietz/{}/main/Cargo.toml", get_prog_name());
+    let url = format!(
+        "https://raw.githubusercontent.com/mwrietz/{}/main/Cargo.toml",
+        get_prog_name()
+    );
 
     let mut res = reqwest::blocking::get(url)?;
     let mut body = String::new();
@@ -47,7 +47,10 @@ pub fn check_version() -> Result<(), Box<dyn std::error::Error>> {
 
     if local_version != github_version {
         println!();
-        println!("The local version of '{}' is different than the GitHub version.", get_prog_name());
+        println!(
+            "The local version of '{}' is different than the GitHub version.",
+            get_prog_name()
+        );
         println!("    Local version  = {}", local_version);
         println!("    GitHub version = {}", github_version);
         if local_version < github_version.as_str() {
