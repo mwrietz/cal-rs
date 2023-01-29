@@ -1,6 +1,0 @@
-- [X] highlight current day of week
-- [X] add arg for another year
-- [X] remove space between dates
-- [X] print year header with spaces between numerals
-- [ ] add --version arg
-- [ ] 
