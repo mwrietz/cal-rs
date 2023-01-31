@@ -1,11 +1,20 @@
 // one page calendar
 
-mod ct;
-mod gh_repo_status;
-
-use ct::{print_color, print_color_bold, print_color_bold_reverse};
 use std::env;
+use std::io::{stdout, Read};
 use std::process;
+
+use crossterm::{
+    execute,
+    style::{Color, Print, ResetColor, SetForegroundColor, Stylize},
+};
+
+enum Position {
+    Top,
+    Middle,
+    Bottom,
+    Side,
+}
 
 struct Date {
     year: usize,
@@ -14,28 +23,10 @@ struct Date {
     calendar_year: usize,
 }
 
-enum Position {
-    Top,
-    Middle,
-    Bottom,
-    Side,
-    //Tee,
-    //TeeInv,
-    //Cross,
-}
-
 fn main() {
     let args: Vec<String> = env::args().collect();
 
-    let ts = timestamp();
-    let tsv: Vec<&str> = ts.split(['-', ' ']).collect();
-
-    let mut today = Date {
-        year: tsv[0].parse::<usize>().unwrap(),
-        month: tsv[1].parse::<usize>().unwrap(),
-        day: tsv[2].parse::<usize>().unwrap(),
-        calendar_year: 0,
-    };
+    let mut today = initialize_date();
 
     if args.len() < 2 {
         today.calendar_year = today.year;
@@ -95,14 +86,12 @@ fn print_month_headers(today: &Date) {
         if i == 1 {
             buffer = title_str(&format!("{}", today.calendar_year));
             buffer = center_str(&buffer, 15);
-        }
-        else {
+        } else {
             buffer = "               ".to_string();
         }
 
-        //line(Position::Side);
         print!(" ");
-        print_color_bold(&buffer, "DARKYELLOW");
+        print_color_bold(&buffer, Color::DarkYellow);
         line(Position::Side);
 
         print!(" ");
@@ -113,7 +102,6 @@ fn print_month_headers(today: &Date) {
                 print!("    ");
             }
         }
-        //line(Position::Side);
         print!(" ");
         println!();
     }
@@ -132,7 +120,6 @@ fn print_table(today: &Date) {
     let mut highlight_row = 100;
     for row in 0..7 {
         // print dates
-        //line(Position::Side);
         print!(" ");
         for col in 0..5 {
             let dayval = row + 1 + col * 7;
@@ -145,10 +132,10 @@ fn print_table(today: &Date) {
                     _ => print!(" "),
                 }
                 if dayval == today.day && today.year == today.calendar_year {
-                    print_color_bold_reverse(&daystring, &date_color(dayval, today.calendar_year));
+                    print_color_bold_reverse(&daystring, date_color(dayval, today.calendar_year));
                     highlight_row = row;
                 } else {
-                    print_color(&daystring, &date_color(dayval, today.calendar_year));
+                    print_color(&daystring, date_color(dayval, today.calendar_year));
                 }
             } else {
                 print!("   ")
@@ -160,11 +147,11 @@ fn print_table(today: &Date) {
         // print days
         for col in 0..7 {
             let buffer = format!("{}", days[row as usize][col]);
-            let daycolor: &str;
+            let daycolor: Color;
             if buffer == "Sun" {
-                daycolor = "DARKYELLOW"
+                daycolor = Color::DarkYellow;
             } else {
-                daycolor = "WHITE"
+                daycolor = Color::White;
             }
 
             if today.year == today.calendar_year
@@ -178,9 +165,6 @@ fn print_table(today: &Date) {
                 print_color(&buffer, daycolor);
             }
         }
-        print!(" ");
-        //line(Position::Side);
-        print!(" ");
         println!();
     }
 }
@@ -189,65 +173,60 @@ fn print_month_name(today: &Date, month: usize) {
     let buffer = format!("{}", month_name(month));
 
     if month == today.month && today.calendar_year == today.year {
-        print_color_bold_reverse(&buffer, &month_color(month_name(month)));
+        print_color_bold_reverse(&buffer, month_color(month_name(month)));
         print!(" ");
     } else {
-        print_color(&buffer, &month_color(month_name(month)));
+        print_color(&buffer, month_color(month_name(month)));
         print!(" ");
     }
 }
 
-fn month_name(month_num: usize) -> String {
+fn month_name(month_num: usize) -> &'static str {
     match month_num {
-        1 => String::from("JAN"),
-        2 => String::from("FEB"),
-        3 => String::from("MAR"),
-        4 => String::from("APR"),
-        5 => String::from("MAY"),
-        6 => String::from("JUN"),
-        7 => String::from("JUL"),
-        8 => String::from("AUG"),
-        9 => String::from("SEP"),
-        10 => String::from("OCT"),
-        11 => String::from("NOV"),
-        12 => String::from("DEC"),
-        _ => String::from("   "),
+        1 => "JAN",
+        2 => "FEB",
+        3 => "MAR",
+        4 => "APR",
+        5 => "MAY",
+        6 => "JUN",
+        7 => "JUL",
+        8 => "AUG",
+        9 => "SEP",
+        10 => "OCT",
+        11 => "NOV",
+        12 => "DEC",
+        _ => "   ",
     }
 }
 
-fn month_color(month_abbr: String) -> String {
-    match month_abbr.as_str() {
-        "JAN" => "DARKBLUE".to_string(),
-        "FEB" => "DARKRED".to_string(),
-        "MAR" => "DARKBLUE".to_string(),
-        "APR" => "DARKGREEN".to_string(),
-        "MAY" => "DARKBLUE".to_string(),
-        "JUN" => "DARKGREEN".to_string(),
-        "JUL" => "DARKBLUE".to_string(),
-        "AUG" => "DARKBLUE".to_string(),
-        "SEP" => "DARKGREEN".to_string(),
-        "OCT" => "DARKBLUE".to_string(),
-        "NOV" => "DARKGREEN".to_string(),
-        "DEC" => "DARKBLUE".to_string(),
-        _ => "WHITE".to_string(),
+fn month_color(month_abbr: &str) -> Color {
+    match month_abbr {
+        "JAN" | "MAR" | "MAY" | "JUL" | "AUG" | "OCT" | "DEC" => Color::DarkBlue,
+        "APR" | "JUN" | "SEP" | "NOV" => Color::DarkGreen,
+        "FEB" => Color::DarkRed,
+        _ => Color::White,
     }
 }
 
-fn date_color(dayval: usize, calendar_year: usize) -> String {
-    if is_leap_year(calendar_year) {
-        match dayval {
-            29 => "DARKRED".to_string(),
-            30 => "DARKGREEN".to_string(),
-            31 => "DARKBLUE".to_string(),
-            _ => "WHITE".to_string(),
+fn date_color(dayval: usize, calendar_year: usize) -> Color {
+    match dayval {
+        28 => {
+            if is_leap_year(calendar_year) {
+                Color::White
+            } else {
+                Color::DarkRed
+            }
         }
-    } else {
-        match dayval {
-            28 => "DARKRED".to_string(),
-            30 => "DARKGREEN".to_string(),
-            31 => "DARKBLUE".to_string(),
-            _ => "WHITE".to_string(),
+        29 => {
+            if is_leap_year(calendar_year) {
+                Color::DarkRed
+            } else {
+                Color::White
+            }
         }
+        30 => Color::DarkGreen,
+        31 => Color::DarkBlue,
+        _ => Color::White,
     }
 }
 
@@ -277,9 +256,18 @@ fn is_leap_year(year: usize) -> bool {
     false
 }
 
-fn timestamp() -> String {
+fn initialize_date() -> Date {
     let now = chrono::Local::now();
-    return now.to_string();
+    let ts = now.to_string();
+    let tsv: Vec<&str> = ts.split(['-', ' ']).collect();
+    let today = Date {
+        year: tsv[0].parse::<usize>().unwrap(),
+        month: tsv[1].parse::<usize>().unwrap(),
+        day: tsv[2].parse::<usize>().unwrap(),
+        calendar_year: 0,
+    };
+
+    today
 }
 
 fn center_str(title: &str, width: usize) -> String {
@@ -309,14 +297,11 @@ fn title_str(title: &str) -> String {
 }
 
 fn line(pos: Position) {
-    let box_color = "WHITE";
+    let box_color = Color::White;
     let buffer_top = format!("                │                              ");
     let buffer_mid = format!("────────────────┼──────────────────────────────");
     let buffer_bot = format!("                │                              ");
     let buffer_side = format!("│");
-    //let buffer_tee = format!("┬");
-    //let buffer_teeinv = format!("┴");
-    //let buffer_cross = format!("┼");
     match pos {
         Position::Top => {
             print_color(&buffer_top, box_color);
@@ -333,30 +318,83 @@ fn line(pos: Position) {
         Position::Side => {
             print_color(&buffer_side, box_color);
         }
-        //Position::Tee => {
-        //    print_color(&buffer_tee, box_color);
-        //}
-        //Position::TeeInv => {
-        //    print_color(&buffer_teeinv, box_color);
-        //}
-        //Position::Cross => {
-        //    print_color(&buffer_cross, box_color);
-        //}
     }
 }
 
-fn usage() -> usize {
-    println!();
-    //println!("{} v{}", get_prog_name(), env!("CARGO_PKG_VERSION"));
-    print_color_bold(&get_prog_name(), "DARKYELLOW");
-    println!(" v{}", env!("CARGO_PKG_VERSION"));
-    println!();
-    println!("Usage: {} [YEAR]", get_prog_name());
-    println!();
+fn print_color(my_str: &str, color: Color) {
+    execute!(
+        stdout(),
+        SetForegroundColor(color),
+        Print(my_str),
+        ResetColor
+    )
+    .expect("print_color error");
+}
 
-    quit();
+fn print_color_bold(my_str: &str, color: Color) {
+    execute!(
+        stdout(),
+        SetForegroundColor(color),
+        Print(my_str.bold()),
+        ResetColor
+    )
+    .expect("print_color_bold error");
+}
 
-    0
+fn print_color_bold_reverse(my_str: &str, color: Color) {
+    execute!(
+        stdout(),
+        SetForegroundColor(color),
+        Print(my_str.bold().reverse()),
+        ResetColor
+    )
+    .expect("print_color_bold error");
+}
+
+fn check_version() -> Result<(), Box<dyn std::error::Error>> {
+    let url = format!(
+        "https://raw.githubusercontent.com/mwrietz/{}/main/Cargo.toml",
+        get_prog_name()
+    );
+
+    let mut res = reqwest::blocking::get(url)?;
+    let mut body = String::new();
+    res.read_to_string(&mut body)?;
+
+    // split body into vector of lines
+    let lines: Vec<&str> = body.split("\n").collect();
+
+    // find version in GitHub Cargo.toml
+    let mut github_version = String::new();
+    for line in lines {
+        if line.starts_with("version") {
+            github_version = line
+                .replace("\"", "")
+                .replace(" ", "")
+                .replace("version=", "");
+            break;
+        }
+    }
+
+    let local_version = env!("CARGO_PKG_VERSION");
+
+    if local_version != github_version {
+        println!();
+        println!(
+            "The local version of '{}' is different than the GitHub version.",
+            get_prog_name()
+        );
+        println!("    Local version  = {}", local_version);
+        println!("    GitHub version = {}", github_version);
+        if local_version < github_version.as_str() {
+            println!("The GitHub version is newer.  Consider upgrading to the newer version.");
+        } else {
+            println!("The GitHub version is older.  Consider a commit.");
+        }
+        println!();
+    }
+
+    Ok(())
 }
 
 fn get_prog_name() -> String {
@@ -370,6 +408,19 @@ fn get_prog_name() -> String {
 }
 
 fn quit() {
-    gh_repo_status::check_version().expect("check_version error");
+    check_version().expect("check_version error");
     process::exit(1);
+}
+
+fn usage() -> usize {
+    println!();
+    print_color_bold(&get_prog_name(), Color::DarkYellow);
+    println!(" v{}", env!("CARGO_PKG_VERSION"));
+    println!();
+    println!("Usage: {} [YEAR]", get_prog_name());
+    println!();
+
+    quit();
+
+    0
 }
