@@ -108,14 +108,7 @@ fn print_month_headers(today: &Date) {
 }
 
 fn print_table(today: &Date) {
-    let mut days: Vec<Vec<&str>> = Vec::new();
-    days.push("Sun Mon Tue Wed Thu Fri Sat".split(' ').collect());
-    days.push("Mon Tue Wed Thu Fri Sat Sun".split(' ').collect());
-    days.push("Tue Wed Thu Fri Sat Sun Mon".split(' ').collect());
-    days.push("Wed Thu Fri Sat Sun Mon Tue".split(' ').collect());
-    days.push("Thu Fri Sat Sun Mon Tue Wed".split(' ').collect());
-    days.push("Fri Sat Sun Mon Tue Wed Thu".split(' ').collect());
-    days.push("Sat Sun Mon Tue Wed Thu Fri".split(' ').collect());
+    let mut days: Vec<&str> = "Sun Mon Tue Wed Thu Fri Sat".split(' ').collect();
 
     let mut highlight_row = 100;
     for row in 0..7 {
@@ -146,7 +139,8 @@ fn print_table(today: &Date) {
 
         // print days
         for col in 0..7 {
-            let buffer = format!("{}", days[row as usize][col]);
+            let buffer = format!("{}", days[col]);
+
             let daycolor: Color;
             if buffer == "Sun" {
                 daycolor = Color::DarkYellow;
@@ -165,6 +159,9 @@ fn print_table(today: &Date) {
                 print_color(&buffer, daycolor);
             }
         }
+        // shift days
+        days.push(days[0]);
+        days.remove(0);
         println!();
     }
 }
