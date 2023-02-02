@@ -93,17 +93,6 @@ fn print_month_headers(today: &Date) {
     }
 }
 
-fn title_str(title: String) -> String {
-    let mut buffer = String::new();
-    for c in title.chars() {
-        buffer.push(c);
-        buffer.push(' ');
-    }
-    buffer.pop();
-
-    buffer
-}
-
 fn print_table(today: &Date) {
     let mut days: Vec<&str> = "Sun Mon Tue Wed Thu Fri Sat".split(' ').collect();
 
@@ -189,6 +178,10 @@ fn month_name(month_num: usize) -> &'static str {
     }
 }
 
+fn month_column(year: usize, month: usize) -> usize {
+    day_of_week(year, month, 1)
+}
+
 fn month_color(month_abbr: &str) -> Color {
     match month_abbr {
         "JAN" | "MAR" | "MAY" | "JUL" | "AUG" | "OCT" | "DEC" => Color::DarkBlue,
@@ -218,10 +211,6 @@ fn date_color(dayval: usize, calendar_year: usize) -> Color {
         31 => Color::DarkBlue,
         _ => Color::White,
     }
-}
-
-fn month_column(year: usize, month: usize) -> usize {
-    day_of_week(year, month, 1)
 }
 
 fn day_of_week(year: usize, month: usize, day: usize) -> usize {
@@ -299,6 +288,17 @@ fn print_color_bold_reverse(my_str: &str, color: Color) {
         ResetColor
     )
     .expect("print_color_bold error");
+}
+
+fn title_str(title: String) -> String {
+    let mut buffer = String::new();
+    for c in title.chars() {
+        buffer.push(c);
+        buffer.push(' ');
+    }
+    buffer.pop();
+
+    buffer
 }
 
 fn check_version() -> Result<(), Box<dyn std::error::Error>> {
