@@ -25,8 +25,7 @@ struct Date {
 
 impl Default for Date {
     fn default () -> Date {
-        let now = chrono::Local::now();
-        let ts = now.to_string();
+        let ts = chrono::Local::now().to_string();
         let tsv: Vec<&str> = ts.split(['-', ' ']).collect();
         Date {
             year: tsv[0].parse::<usize>().unwrap(),
@@ -39,8 +38,6 @@ impl Default for Date {
 
 fn main() {
     let args: Vec<String> = env::args().collect();
-
-    //let mut today = initialize_date();
     let mut today = Date::default();
 
     if args.len() < 2 {
@@ -74,10 +71,9 @@ fn print_month_headers(today: &Date) {
     for i in 1..=12 {
         cols[month_column(today.calendar_year, i)].push(i); 
     }
-
     for i in 0..3 {
         let buffer: String = match i {
-            1 => center_str(title_str(format!("{}", today.calendar_year)), 15),
+            1 => format!("{: ^15}", title_str(format!("{}", today.calendar_year))),
             _ => "               ".to_string()
         };
 
@@ -104,21 +100,6 @@ fn title_str(title: String) -> String {
         buffer.push(' ');
     }
     buffer.pop();
-
-    buffer
-}
-
-fn center_str(title: String, width: usize) -> String {
-    let pad = (width - title.len()) / 2;
-
-    let mut buffer = String::new();
-    for _i in 0..pad {
-        buffer.push(' ');
-    }
-    buffer += &title;
-    for _i in 0..pad {
-        buffer.push(' ');
-    }
 
     buffer
 }
