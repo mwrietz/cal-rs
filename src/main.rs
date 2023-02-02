@@ -23,10 +23,25 @@ struct Date {
     calendar_year: usize,
 }
 
+impl Default for Date {
+    fn default () -> Date {
+        let now = chrono::Local::now();
+        let ts = now.to_string();
+        let tsv: Vec<&str> = ts.split(['-', ' ']).collect();
+        Date {
+            year: tsv[0].parse::<usize>().unwrap(),
+            month: tsv[1].parse::<usize>().unwrap(),
+            day: tsv[2].parse::<usize>().unwrap(),
+            calendar_year: 0
+        }
+    }
+}
+
 fn main() {
     let args: Vec<String> = env::args().collect();
 
-    let mut today = initialize_date();
+    //let mut today = initialize_date();
+    let mut today = Date::default();
 
     if args.len() < 2 {
         today.calendar_year = today.year;
@@ -249,21 +264,6 @@ fn is_leap_year(year: usize) -> bool {
 
     false
 }
-
-fn initialize_date() -> Date {
-    let now = chrono::Local::now();
-    let ts = now.to_string();
-    let tsv: Vec<&str> = ts.split(['-', ' ']).collect();
-    let today = Date {
-        year: tsv[0].parse::<usize>().unwrap(),
-        month: tsv[1].parse::<usize>().unwrap(),
-        day: tsv[2].parse::<usize>().unwrap(),
-        calendar_year: 0,
-    };
-
-    today
-}
-
 
 fn line(pos: Position) {
     let box_color = Color::White;
