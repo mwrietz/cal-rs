@@ -50,45 +50,21 @@ fn main() {
 }
 
 fn print_month_headers(today: &Date) {
-    // populate columns
-    let mut col0: Vec<usize> = Vec::new();
-    let mut col1: Vec<usize> = Vec::new();
-    let mut col2: Vec<usize> = Vec::new();
-    let mut col3: Vec<usize> = Vec::new();
-    let mut col4: Vec<usize> = Vec::new();
-    let mut col5: Vec<usize> = Vec::new();
-    let mut col6: Vec<usize> = Vec::new();
-
-    for i in 1..=12 {
-        match month_column(today.calendar_year, i) {
-            0 => col0.push(i),
-            1 => col1.push(i),
-            2 => col2.push(i),
-            3 => col3.push(i),
-            4 => col4.push(i),
-            5 => col5.push(i),
-            6 => col6.push(i),
-            _ => println!("error"),
-        }
+    let mut cols: Vec<Vec<usize>> = Vec::new();
+    for _i in 0..7 {
+        let col: Vec<usize> = Vec::new();
+        cols.push(col.clone());
     }
 
-    let mut cols: Vec<Vec<usize>> = Vec::new();
-    cols.push(col0.clone());
-    cols.push(col1.clone());
-    cols.push(col2.clone());
-    cols.push(col3.clone());
-    cols.push(col4.clone());
-    cols.push(col5.clone());
-    cols.push(col6.clone());
+    for i in 1..=12 {
+        cols[month_column(today.calendar_year, i)].push(i); 
+    }
 
     for i in 0..3 {
-        let mut buffer: String;
-        if i == 1 {
-            buffer = title_str(&format!("{}", today.calendar_year));
-            buffer = center_str(&buffer, 15);
-        } else {
-            buffer = "               ".to_string();
-        }
+        let buffer: String = match i {
+            1 => center_str(title_str(format!("{}", today.calendar_year)), 15),
+            _ => "               ".to_string()
+        };
 
         print!(" ");
         print_color_bold(&buffer, Color::DarkYellow);
@@ -102,9 +78,34 @@ fn print_month_headers(today: &Date) {
                 print!("    ");
             }
         }
-        print!(" ");
-        println!();
+        println!(" ");
     }
+}
+
+fn title_str(title: String) -> String {
+    let mut buffer = String::new();
+    for c in title.chars() {
+        buffer.push(c);
+        buffer.push(' ');
+    }
+    buffer.pop();
+
+    buffer
+}
+
+fn center_str(title: String, width: usize) -> String {
+    let pad = (width - title.len()) / 2;
+
+    let mut buffer = String::new();
+    for _i in 0..pad {
+        buffer.push(' ');
+    }
+    buffer += &title;
+    for _i in 0..pad {
+        buffer.push(' ');
+    }
+
+    buffer
 }
 
 fn print_table(today: &Date) {
@@ -139,24 +140,20 @@ fn print_table(today: &Date) {
 
         // print days
         for col in 0..7 {
-            let buffer = format!("{}", days[col]);
-
-            let daycolor: Color;
-            if buffer == "Sun" {
-                daycolor = Color::DarkYellow;
-            } else {
-                daycolor = Color::White;
-            }
+            let daycolor: Color = match days[col] {
+                "Sun" => Color::DarkYellow,
+                _ => Color::White
+            };
 
             if today.year == today.calendar_year
                 && row == highlight_row
                 && col == month_column(today.year, today.month)
             {
                 print!(" ");
-                print_color_bold_reverse(&buffer, daycolor);
+                print_color_bold_reverse(days[col], daycolor);
             } else {
                 print!(" ");
-                print_color(&buffer, daycolor);
+                print_color(days[col], daycolor);
             }
         }
         // shift days
@@ -267,31 +264,6 @@ fn initialize_date() -> Date {
     today
 }
 
-fn center_str(title: &str, width: usize) -> String {
-    let pad = (width - title.len()) / 2;
-
-    let mut buffer = String::new();
-    for _i in 0..pad {
-        buffer.push_str(" ");
-    }
-    buffer.push_str(title);
-    for _i in 0..pad {
-        buffer.push_str(" ");
-    }
-
-    buffer
-}
-
-fn title_str(title: &str) -> String {
-    let mut buffer = String::new();
-    for c in title.chars() {
-        buffer.push_str(&format!("{}", c));
-        buffer.push_str(" ");
-    }
-    buffer.pop();
-
-    buffer
-}
 
 fn line(pos: Position) {
     let box_color = Color::White;
