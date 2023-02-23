@@ -1,7 +1,7 @@
 // one page calendar
 
 use std::env;
-use std::io::{stdout, Read};
+use std::io::stdout;
 use std::process;
 
 use crossterm::{
@@ -57,8 +57,6 @@ fn main() {
     print_table(&today);
     line(Position::Bottom);
     println!();
-
-    quit();
 }
 
 fn print_month_headers(today: &Date) {
@@ -301,52 +299,6 @@ fn title_str(title: String) -> String {
     buffer
 }
 
-fn check_version() -> Result<(), Box<dyn std::error::Error>> {
-    let url = format!(
-        "https://raw.githubusercontent.com/mwrietz/{}/main/Cargo.toml",
-        get_prog_name()
-    );
-
-    let mut res = reqwest::blocking::get(url)?;
-    let mut body = String::new();
-    res.read_to_string(&mut body)?;
-
-    // split body into vector of lines
-    let lines: Vec<&str> = body.split("\n").collect();
-
-    // find version in GitHub Cargo.toml
-    let mut github_version = String::new();
-    for line in lines {
-        if line.starts_with("version") {
-            github_version = line
-                .replace("\"", "")
-                .replace(" ", "")
-                .replace("version=", "");
-            break;
-        }
-    }
-
-    let local_version = env!("CARGO_PKG_VERSION");
-
-    if local_version != github_version {
-        println!();
-        println!(
-            "The local version of '{}' is different than the GitHub version.",
-            get_prog_name()
-        );
-        println!("    Local version  = {}", local_version);
-        println!("    GitHub version = {}", github_version);
-        if local_version < github_version.as_str() {
-            println!("The GitHub version is newer.  Consider upgrading to the newer version.");
-        } else {
-            println!("The GitHub version is older.  Consider a commit.");
-        }
-        println!();
-    }
-
-    Ok(())
-}
-
 fn get_prog_name() -> String {
     let prog_name = env::current_exe()
         .expect("Can't get the exec path")
@@ -357,11 +309,6 @@ fn get_prog_name() -> String {
     prog_name
 }
 
-fn quit() {
-    check_version().expect("check_version error");
-    process::exit(1);
-}
-
 fn usage() -> usize {
     println!();
     print_color_bold(&get_prog_name(), Color::DarkYellow);
@@ -370,7 +317,5 @@ fn usage() -> usize {
     println!("Usage: {} [YEAR]", get_prog_name());
     println!();
 
-    quit();
-
-    0
+    process::exit(1)
 }
