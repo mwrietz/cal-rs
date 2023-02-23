@@ -184,7 +184,7 @@ fn month_color(month_abbr: &str) -> Color {
     match month_abbr {
         "JAN" | "MAR" | "MAY" | "JUL" | "AUG" | "OCT" | "DEC" => Color::DarkBlue,
         "APR" | "JUN" | "SEP" | "NOV" => Color::DarkGreen,
-        "FEB" => Color::DarkRed,
+        "FEB" => Color::DarkMagenta,
         _ => Color::White,
     }
 }
@@ -195,12 +195,12 @@ fn date_color(dayval: usize, calendar_year: usize) -> Color {
             if is_leap_year(calendar_year) {
                 Color::White
             } else {
-                Color::DarkRed
+                Color::DarkMagenta
             }
         }
         29 => {
             if is_leap_year(calendar_year) {
-                Color::DarkRed
+                Color::DarkMagenta
             } else {
                 Color::White
             }
