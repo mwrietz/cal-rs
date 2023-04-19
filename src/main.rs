@@ -311,7 +311,7 @@ fn get_prog_name() -> String {
 
 fn usage() -> usize {
     println!();
-    print_color_bold(&get_prog_name(), Color::DarkYellow);
+    print_color_bold(&get_prog_name(), Color::Yellow);
     println!(" v{}", env!("CARGO_PKG_VERSION"));
     println!();
     println!("Usage: {} [YEAR]", get_prog_name());
