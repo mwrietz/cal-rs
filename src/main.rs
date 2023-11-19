@@ -24,14 +24,14 @@ struct Date {
 }
 
 impl Default for Date {
-    fn default () -> Date {
+    fn default() -> Date {
         let ts = chrono::Local::now().to_string();
         let tsv: Vec<&str> = ts.split(['-', ' ']).collect();
         Date {
             year: tsv[0].parse::<usize>().unwrap(),
             month: tsv[1].parse::<usize>().unwrap(),
             day: tsv[2].parse::<usize>().unwrap(),
-            calendar_year: 0
+            calendar_year: 0,
         }
     }
 }
@@ -67,12 +67,12 @@ fn print_month_headers(today: &Date) {
     }
 
     for i in 1..=12 {
-        cols[month_column(today.calendar_year, i)].push(i); 
+        cols[month_column(today.calendar_year, i)].push(i);
     }
     for i in 0..3 {
         let buffer: String = match i {
             1 => format!("{: ^15}", title_str(format!("{}", today.calendar_year))),
-            _ => "               ".to_string()
+            _ => "               ".to_string(),
         };
 
         print!(" ");
@@ -80,9 +80,16 @@ fn print_month_headers(today: &Date) {
         line(Position::Side);
 
         print!(" ");
-        for c in 0..7 {
-            if cols[c].len() > i {
-                print_month_name(&today, cols[c][i]);
+        // for c in 0..7 {
+        //     if cols[c].len() > i {
+        //         print_month_name(today, cols[c][i]);
+        //     } else {
+        //         print!("    ");
+        //     }
+        // }
+        for c in cols.iter().take(7) {
+            if c.len() > i {
+                print_month_name(today, c[i]);
             } else {
                 print!("    ");
             }
@@ -122,10 +129,28 @@ fn print_table(today: &Date) {
         line(Position::Side);
 
         // print days
-        for col in 0..7 {
-            let daycolor: Color = match days[col] {
+        // for col in 0..7 {
+        //     let daycolor: Color = match days[col] {
+        //         "Sun" => Color::DarkYellow,
+        //         _ => Color::White,
+        //     };
+        //
+        //     if today.year == today.calendar_year
+        //         && row == highlight_row
+        //         && col == month_column(today.year, today.month)
+        //     {
+        //         print!(" ");
+        //         print_color_bold_reverse(days[col], daycolor);
+        //     } else {
+        //         print!(" ");
+        //         print_color(days[col], daycolor);
+        //     }
+        // }
+        //for col in 0..7 {
+        for (col, &day) in days.iter().enumerate().take(7) {
+            let daycolor: Color = match day {
                 "Sun" => Color::DarkYellow,
-                _ => Color::White
+                _ => Color::White,
             };
 
             if today.year == today.calendar_year
@@ -147,7 +172,7 @@ fn print_table(today: &Date) {
 }
 
 fn print_month_name(today: &Date, month: usize) {
-    let buffer = format!("{}", month_name(month));
+    let buffer = month_name(month).to_string();
 
     if month == today.month && today.calendar_year == today.year {
         print_color_bold_reverse(&buffer, month_color(month_name(month)));
@@ -220,9 +245,10 @@ fn day_of_week(year: usize, month: usize, day: usize) -> usize {
     if m < 3 {
         y -= 1;
     }
-    let dow = (y + y / 4 - y / 100 + y / 400 + t[m - 1] + d) % 7;
+    //let dow = (y + y / 4 - y / 100 + y / 400 + t[m - 1] + d) % 7;
+    (y + y / 4 - y / 100 + y / 400 + t[m - 1] + d) % 7
 
-    dow
+    //dow
 }
 
 fn is_leap_year(year: usize) -> bool {
@@ -235,10 +261,10 @@ fn is_leap_year(year: usize) -> bool {
 
 fn line(pos: Position) {
     let box_color = Color::White;
-    let buffer_top = format!("                │                              ");
-    let buffer_mid = format!("────────────────┼──────────────────────────────");
-    let buffer_bot = format!("                │                              ");
-    let buffer_side = format!("│");
+    let buffer_top = "                │                              ".to_string();
+    let buffer_mid = "────────────────┼──────────────────────────────".to_string();
+    let buffer_bot = "                │                              ".to_string();
+    let buffer_side = "│".to_string();
     match pos {
         Position::Top => {
             print_color(&buffer_top, box_color);
