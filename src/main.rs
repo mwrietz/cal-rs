@@ -80,13 +80,6 @@ fn print_month_headers(today: &Date) {
         line(Position::Side);
 
         print!(" ");
-        // for c in 0..7 {
-        //     if cols[c].len() > i {
-        //         print_month_name(today, cols[c][i]);
-        //     } else {
-        //         print!("    ");
-        //     }
-        // }
         for c in cols.iter().take(7) {
             if c.len() > i {
                 print_month_name(today, c[i]);
@@ -128,25 +121,6 @@ fn print_table(today: &Date) {
         print!(" ");
         line(Position::Side);
 
-        // print days
-        // for col in 0..7 {
-        //     let daycolor: Color = match days[col] {
-        //         "Sun" => Color::DarkYellow,
-        //         _ => Color::White,
-        //     };
-        //
-        //     if today.year == today.calendar_year
-        //         && row == highlight_row
-        //         && col == month_column(today.year, today.month)
-        //     {
-        //         print!(" ");
-        //         print_color_bold_reverse(days[col], daycolor);
-        //     } else {
-        //         print!(" ");
-        //         print_color(days[col], daycolor);
-        //     }
-        // }
-        //for col in 0..7 {
         for (col, &day) in days.iter().enumerate().take(7) {
             let daycolor: Color = match day {
                 "Sun" => Color::DarkYellow,
@@ -245,10 +219,8 @@ fn day_of_week(year: usize, month: usize, day: usize) -> usize {
     if m < 3 {
         y -= 1;
     }
-    //let dow = (y + y / 4 - y / 100 + y / 400 + t[m - 1] + d) % 7;
-    (y + y / 4 - y / 100 + y / 400 + t[m - 1] + d) % 7
 
-    //dow
+    (y + y / 4 - y / 100 + y / 400 + t[m - 1] + d) % 7
 }
 
 fn is_leap_year(year: usize) -> bool {
